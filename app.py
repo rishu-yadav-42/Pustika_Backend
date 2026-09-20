@@ -354,20 +354,210 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # --- ROOT & HEALTH CHECK ---
+    # --- ROOT, DOCS & HEALTH CHECK ---
     @app.route('/', methods=['GET'])
     def root_info():
         return jsonify({
             "service": "Pustika Backend REST API Server",
             "status": "online",
             "version": "1.0.0",
+            "documentation": "/docs",
             "endpoints": {
+                "docs": "/docs",
                 "health": "/api/health",
                 "books": "/api/books",
                 "categories": "/api/categories",
                 "auth_me": "/api/me"
             }
         }), 200
+
+    @app.route('/docs', methods=['GET'])
+    @app.route('/swagger', methods=['GET'])
+    def swagger_ui():
+        html_content = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pustika REST API - Swagger UI</title>
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css" />
+  <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@5/favicon-32x32.png" />
+  <style>
+    html { box-sizing: border-box; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #0f172a; color: #f8fafc; font-family: sans-serif; }
+    .swagger-ui .topbar { display: none; }
+    .swagger-ui { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .swagger-ui .info .title { color: #f59e0b; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js" charset="UTF-8"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js" charset="UTF-8"></script>
+  <script>
+    window.onload = function() {
+      window.ui = SwaggerUIBundle({
+        url: "/swagger.json",
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        layout: "BaseLayout"
+      });
+    };
+  </script>
+</body>
+</html>"""
+        return make_response(html_content)
+
+    @app.route('/swagger.json', methods=['GET'])
+    def swagger_json():
+        return jsonify({
+            "openapi": "3.0.0",
+            "info": {
+                "title": "Pustika REST API Documentation",
+                "version": "1.0.0",
+                "description": "Interactive Swagger OpenAPI 3.0 documentation for Pustika E-Book & Audiobook Backend API."
+            },
+            "servers": [
+                {"url": "https://pustika-backend.vercel.app", "description": "Production Backend"},
+                {"url": "http://127.0.0.1:5000", "description": "Local Backend"}
+            ],
+            "paths": {
+                "/api/health": {
+                    "get": {
+                        "tags": ["System"],
+                        "summary": "Health Check Status",
+                        "responses": {"200": {"description": "API status online"}}
+                    }
+                },
+                "/api/register": {
+                    "post": {
+                        "tags": ["Authentication"],
+                        "summary": "User Registration",
+                        "requestBody": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "username": {"type": "string"},
+                                            "email": {"type": "string"},
+                                            "password": {"type": "string"}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {"201": {"description": "Registered successfully"}}
+                    }
+                },
+                "/api/login": {
+                    "post": {
+                        "tags": ["Authentication"],
+                        "summary": "User Login",
+                        "requestBody": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "object",
+                                        "properties": {
+                                            "email": {"type": "string"},
+                                            "password": {"type": "string"}
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        "responses": {"200": {"description": "Logged in successfully"}}
+                    }
+                },
+                "/api/logout": {
+                    "post": {
+                        "tags": ["Authentication"],
+                        "summary": "User Logout",
+                        "responses": {"200": {"description": "Logged out successfully"}}
+                    }
+                },
+                "/api/me": {
+                    "get": {
+                        "tags": ["Authentication"],
+                        "summary": "Get Current Logged-in User Profile",
+                        "responses": {"200": {"description": "User details"}}
+                    }
+                },
+                "/api/categories": {
+                    "get": {
+                        "tags": ["Categories"],
+                        "summary": "Get List of Book Categories",
+                        "responses": {"200": {"description": "Categories list"}}
+                    }
+                },
+                "/api/books": {
+                    "get": {
+                        "tags": ["Books"],
+                        "summary": "Get Catalog of Books",
+                        "parameters": [
+                            {"name": "q", "in": "query", "schema": {"type": "string"}, "description": "Search keyword"},
+                            {"name": "category", "in": "query", "schema": {"type": "string"}, "description": "Category slug"}
+                        ],
+                        "responses": {"200": {"description": "List of books"}}
+                    },
+                    "post": {
+                        "tags": ["Books (Admin)"],
+                        "summary": "Upload PDF Book & Split Chapters",
+                        "responses": {"201": {"description": "Book created"}}
+                    }
+                },
+                "/api/books/{book_id}": {
+                    "get": {
+                        "tags": ["Books"],
+                        "summary": "Get Book Details and Chapter List",
+                        "parameters": [{"name": "book_id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+                        "responses": {"200": {"description": "Book details"}}
+                    },
+                    "delete": {
+                        "tags": ["Books (Admin)"],
+                        "summary": "Delete Book",
+                        "parameters": [{"name": "book_id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+                        "responses": {"200": {"description": "Book deleted"}}
+                    }
+                },
+                "/api/chapters/{chapter_id}": {
+                    "get": {
+                        "tags": ["Chapters & Audio"],
+                        "summary": "Get Chapter Text Content",
+                        "parameters": [{"name": "chapter_id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+                        "responses": {"200": {"description": "Chapter text"}}
+                    }
+                },
+                "/api/chapters/{chapter_id}/audio": {
+                    "post": {
+                        "tags": ["Chapters & Audio"],
+                        "summary": "Generate or Fetch Chapter Audio MP3",
+                        "parameters": [{"name": "chapter_id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+                        "responses": {"200": {"description": "Audio file information"}}
+                    }
+                },
+                "/api/favorites": {
+                    "get": {
+                        "tags": ["Favorites"],
+                        "summary": "Get Favorite Books",
+                        "responses": {"200": {"description": "Favorite books list"}}
+                    }
+                },
+                "/api/favorites/{book_id}": {
+                    "post": {
+                        "tags": ["Favorites"],
+                        "summary": "Toggle Favorite State for Book",
+                        "parameters": [{"name": "book_id", "in": "path", "required": True, "schema": {"type": "integer"}}],
+                        "responses": {"200": {"description": "Favorite state updated"}}
+                    }
+                }
+            }
+        })
 
     @app.route('/favicon.ico', methods=['GET'])
     def favicon():
