@@ -1,0 +1,19 @@
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment & Secret files
+.env
+.venv/
+venv/
+ENV/
+
+# Database files
+*.db
+*.sqlite3
+instance/
+
+# Uploaded Files
+static/audio/*.mp3
+static/uploads/pdfs/*.pdf
