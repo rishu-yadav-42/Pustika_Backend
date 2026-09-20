@@ -21,9 +21,19 @@ from werkzeug.utils import secure_filename
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
+def get_db_uri():
+    db_url = os.getenv('DATABASE_URL', '').strip()
+    if not db_url:
+        if os.getenv('VERCEL'):
+            return f"sqlite:///{os.path.join('/tmp', 'database.db')}"
+        return f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}"
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    return db_url
+
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default_fallback_secret_key_12345')
-    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}")
+    SQLALCHEMY_DATABASE_URI = get_db_uri()
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     STATIC_FOLDER = os.path.join(BASE_DIR, 'static')
@@ -312,9 +322,12 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    os.makedirs(Config.PDF_UPLOAD_FOLDER, exist_ok=True)
-    os.makedirs(Config.COVER_UPLOAD_FOLDER, exist_ok=True)
-    os.makedirs(Config.AUDIO_FOLDER, exist_ok=True)
+    try:
+        os.makedirs(Config.PDF_UPLOAD_FOLDER, exist_ok=True)
+        os.makedirs(Config.COVER_UPLOAD_FOLDER, exist_ok=True)
+        os.makedirs(Config.AUDIO_FOLDER, exist_ok=True)
+    except Exception:
+        pass
 
     db.init_app(app)
 
