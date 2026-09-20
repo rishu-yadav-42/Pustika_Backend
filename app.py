@@ -37,10 +37,17 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     STATIC_FOLDER = os.path.join(BASE_DIR, 'static')
-    UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, 'uploads')
-    PDF_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'pdfs')
-    COVER_UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, 'images', 'covers')
-    AUDIO_FOLDER = os.path.join(STATIC_FOLDER, 'audio')
+    
+    if os.getenv('VERCEL'):
+        UPLOAD_FOLDER = '/tmp/uploads'
+        PDF_UPLOAD_FOLDER = '/tmp/uploads/pdfs'
+        COVER_UPLOAD_FOLDER = '/tmp/static/images/covers'
+        AUDIO_FOLDER = '/tmp/static/audio'
+    else:
+        UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, 'uploads')
+        PDF_UPLOAD_FOLDER = os.path.join(UPLOAD_FOLDER, 'pdfs')
+        COVER_UPLOAD_FOLDER = os.path.join(STATIC_FOLDER, 'images', 'covers')
+        AUDIO_FOLDER = os.path.join(STATIC_FOLDER, 'audio')
     
     MAX_CONTENT_LENGTH = 500 * 1024 * 1024  # 500MB
     MAX_FORM_MEMORY_SIZE = 50 * 1024 * 1024 # 50MB
