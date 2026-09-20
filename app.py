@@ -354,7 +354,25 @@ def create_app():
     def load_user(user_id):
         return User.query.get(int(user_id))
 
-    # --- HEALTH CHECK ---
+    # --- ROOT & HEALTH CHECK ---
+    @app.route('/', methods=['GET'])
+    def root_info():
+        return jsonify({
+            "service": "Pustika Backend REST API Server",
+            "status": "online",
+            "version": "1.0.0",
+            "endpoints": {
+                "health": "/api/health",
+                "books": "/api/books",
+                "categories": "/api/categories",
+                "auth_me": "/api/me"
+            }
+        }), 200
+
+    @app.route('/favicon.ico', methods=['GET'])
+    def favicon():
+        return '', 204
+
     @app.route('/api/health', methods=['GET'])
     def health_check():
         return jsonify({"status": "ok", "service": "Pustika Backend REST API", "timestamp": datetime.utcnow().isoformat()})
@@ -581,6 +599,14 @@ def create_app():
             db.session.add(new_fav)
             db.session.commit()
             return jsonify({"message": "Added to favorites", "is_favorite": True})
+
+    @app.errorhandler(404)
+    def api_not_found(e):
+        return jsonify({"error": "Resource or endpoint not found", "status": 404}), 404
+
+    @app.errorhandler(500)
+    def api_internal_error(e):
+        return jsonify({"error": "Internal server error", "status": 500}), 500
 
     # --- SEED INITIAL DATABASE DATA ---
     with app.app_context():
