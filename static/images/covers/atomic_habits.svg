@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#f8f5ee"/>
+  <rect x="15" y="15" width="270" height="420" fill="none" stroke="#e2d8c3" stroke-width="2"/>
+  
+  <!-- Dots Ring -->
+  <g transform="translate(150, 190)">
+    <circle cx="0" cy="0" r="75" fill="none" stroke="#eab308" stroke-width="2" stroke-dasharray="4,6"/>
+    <circle cx="0" cy="0" r="60" fill="none" stroke="#f97316" stroke-width="3" stroke-dasharray="6,8"/>
+    <circle cx="0" cy="0" r="45" fill="none" stroke="#ea580c" stroke-width="2" stroke-dasharray="3,5"/>
+    <circle cx="0" cy="0" r="8" fill="#f97316"/>
+  </g>
+
+  <!-- Header Text -->
+  <text x="150" y="70" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#1e293b" text-anchor="middle" letter-spacing="1">Atomic</text>
+  <text x="150" y="105" font-family="'Inter', sans-serif" font-weight="900" font-size="34" fill="#ea580c" text-anchor="middle" letter-spacing="2">Habits</text>
+  
+  <!-- Subtitle -->
+  <text x="150" y="310" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#64748b" text-anchor="middle">Tiny Changes, Remarkable Results</text>
+  <text x="150" y="328" font-family="'Inter', sans-serif" font-size="10" fill="#94a3b8" text-anchor="middle">An Easy &amp; Proven Way to Build Good Habits</text>
+  
+  <!-- Author -->
+  <line x1="80" y1="365" x2="220" y2="365" stroke="#cbd5e1" stroke-width="1"/>
+  <text x="150" y="395" font-family="'Outfit', sans-serif" font-weight="800" font-size="18" fill="#0f172a" text-anchor="middle" letter-spacing="1.5">JAMES CLEAR</text>
+</svg>

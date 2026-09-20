@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - AudioEbook Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="glass-card p-4 p-md-5 shadow-lg">
+                <div class="text-center mb-4">
+                    <div class="badge bg-primary-subtle text-primary p-3 rounded-circle mb-3 fs-3">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h3 class="fw-bold">Create an Account</h3>
+                    <p class="text-secondary small">Join AudioEbook Hub to save history and favorites</p>
+                </div>
+
+                <form action="{{ url_for('register') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input type="text" name="username" class="form-control" required placeholder="Choose a unique username">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" required placeholder="your.email@example.com">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control" required placeholder="At least 6 characters">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Confirm Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-shield-lock"></i></span>
+                            <input type="password" name="confirm_password" class="form-control" required placeholder="Re-type your password">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-warning text-dark font-bold w-100 btn-lg rounded-pill fw-bold">
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="text-center mt-4 text-secondary small">
+                    Already registered? <a href="{{ url_for('login') }}" class="fw-bold">Sign In</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

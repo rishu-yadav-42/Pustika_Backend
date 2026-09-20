@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}Text to Audio Generator - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-mic text-success"></i> ElevenLabs Text-to-Audio Generator</h2>
+            <p class="text-secondary small mb-0">Book: <strong>{{ book.title }}</strong> (Language: {{ book.language }})</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ url_for('audio_player', book_id=book.id) }}" class="btn btn-outline-primary" target="_blank">
+                <i class="bi bi-play-circle me-1"></i> Preview User Player
+            </a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- ElevenLabs Status Banner -->
+    <div class="glass-card p-4 mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold mb-1">
+                    {% if elevenlabs_configured %}
+                    <span class="text-success"><i class="bi bi-cpu-fill"></i> ElevenLabs AI Model: Multilingual v2</span>
+                    {% else %}
+                    <span class="text-warning"><i class="bi bi-lightning-charge-fill"></i> Fallback Engine: gTTS (Google Speech)</span>
+                    {% endif %}
+                </h5>
+                <p class="text-secondary small mb-0">
+                    Converts English & Hindi text chapters into high quality MP3 audio files stored in <code>static/audio/</code>.
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <form action="{{ url_for('tts_generate', book_id=book.id) }}" method="POST">
+                    <button type="submit" class="btn btn-gradient btn-lg shadow">
+                        <i class="bi bi-magic me-2"></i> Convert ALL Chapters to Audio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter Audio Generation Table -->
+    <div class="glass-card p-4">
+        <h5 class="fw-bold mb-3"><i class="bi bi-list-stars text-primary"></i> Chapter Audio Files</h5>
+
+        {% if book.chapters %}
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 70px;">#</th>
+                        <th>Chapter Title</th>
+                        <th>Engine Used</th>
+                        <th>Generated Audio MP3</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chap in book.chapters %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ chap.chapter_number }}</td>
+                        <td>
+                            <div class="fw-bold">{{ chap.title }}</div>
+                            <small class="text-muted">{{ chap.text_content|length }} characters</small>
+                        </td>
+                        <td>
+                            {% if chap.audio_file %}
+                            <span class="badge {% if chap.audio_file.voice_engine == 'elevenlabs' %}bg-success{% else %}bg-info text-dark{% endif %}">
+                                {{ chap.audio_file.voice_engine }}
+                            </span>
+                            {% else %}
+                            <span class="badge bg-secondary">Not Synthesized</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if chap.audio_file %}
+                            <audio controls class="w-100" style="max-width: 280px; height: 36px;">
+                                <source src="{{ url_for('static', filename=chap.audio_file.file_path) }}" type="audio/mpeg">
+                                Your browser does not support the audio element.
+                            </audio>
+                            {% else %}
+                            <span class="text-muted small">No MP3 file created</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <form action="{{ url_for('tts_generate', book_id=book.id) }}" method="POST">
+                                <input type="hidden" name="chapter_id" value="{{ chap.id }}">
+                                <button type="submit" class="btn btn-sm btn-gradient">
+                                    <i class="bi bi-mic-fill me-1"></i> Convert Text to Audio
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-4">No chapters found for this book. Please add chapters first.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

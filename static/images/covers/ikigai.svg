@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#e0f2fe"/>
+  
+  <!-- Sakura Branches & Blossoms -->
+  <path d="M 300 80 Q 200 120 100 60 Q 50 30 0 50" fill="none" stroke="#78350f" stroke-width="4"/>
+  <path d="M 180 95 Q 120 150 80 180" fill="none" stroke="#78350f" stroke-width="2.5"/>
+  
+  <circle cx="160" cy="100" r="12" fill="#f472b6" opacity="0.8"/>
+  <circle cx="130" cy="130" r="15" fill="#fb7185" opacity="0.85"/>
+  <circle cx="90" cy="160" r="10" fill="#f472b6" opacity="0.9"/>
+  <circle cx="210" cy="85" r="14" fill="#fb7185" opacity="0.8"/>
+  <circle cx="110" cy="65" r="11" fill="#f43f5e" opacity="0.75"/>
+  <circle cx="250" cy="95" r="13" fill="#f472b6" opacity="0.85"/>
+
+  <!-- Red Sun Stamp -->
+  <circle cx="150" cy="240" r="40" fill="#dc2626" opacity="0.15"/>
+  
+  <!-- Title -->
+  <text x="150" y="235" font-family="'Outfit', sans-serif" font-weight="900" font-size="36" fill="#0369a1" text-anchor="middle" letter-spacing="6">IKIGAI</text>
+  <text x="150" y="270" font-family="'Inter', sans-serif" font-size="11" font-weight="600" fill="#0284c7" text-anchor="middle">The Japanese Secret</text>
+  <text x="150" y="288" font-family="'Inter', sans-serif" font-size="11" fill="#38bdf8" text-anchor="middle">to a Long and Happy Life</text>
+
+  <!-- Authors -->
+  <text x="150" y="380" font-family="'Inter', sans-serif" font-weight="700" font-size="11" fill="#0f172a" text-anchor="middle" letter-spacing="1">HÉCTOR GARCÍA</text>
+  <text x="150" y="398" font-family="'Inter', sans-serif" font-weight="600" font-size="10" fill="#475569" text-anchor="middle" letter-spacing="1">&amp; FRANCESC MIRALLES</text>
+</svg>

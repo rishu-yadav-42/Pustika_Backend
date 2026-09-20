@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - Pustika{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard-wrapper text-dark" style="background: #f8fafc; min-height: 100vh;">
+    <div class="row g-0">
+        
+        <!-- Left Admin Navigation Sidebar (Exact Match to Image) -->
+        <aside class="col-lg-2 col-md-3 admin-sidebar d-none d-md-flex flex-column py-3 px-3 shadow-sm">
+            <!-- Brand Logo -->
+            <a class="navbar-brand d-flex align-items-center gap-2 mb-4 px-2" href="{{ url_for('index') }}">
+                <div class="bg-warning text-dark rounded-3 px-2 py-1 shadow-sm d-flex align-items-center">
+                    <i class="bi bi-book-fill fs-5"></i>
+                </div>
+                <div>
+                    <span class="pustika-brand-text fs-4">Pustika</span>
+                    <div class="pustika-tagline text-muted" style="font-size: 0.65rem;">Read • Listen • Grow</div>
+                </div>
+            </a>
+
+            <!-- Sidebar Navigation Links -->
+            <div class="admin-sidebar-menu flex-grow-1 overflow-auto no-scrollbar">
+                <!-- Main Dashboard Link -->
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link active mb-3">
+                    <i class="bi bi-speedometer2"></i> Dashboard
+                </a>
+
+                <!-- BOOK MANAGEMENT -->
+                <div class="admin-side-group-title">BOOK MANAGEMENT</div>
+                <a href="{{ url_for('books_catalog') }}" class="admin-side-link">
+                    <i class="bi bi-grid"></i> All Books
+                </a>
+                <a href="{{ url_for('book_create') }}" class="admin-side-link">
+                    <i class="bi bi-plus-circle"></i> Add New Book
+                </a>
+                <a href="{{ url_for('books_catalog') }}" class="admin-side-link">
+                    <i class="bi bi-grid-3x3-gap"></i> Categories
+                </a>
+                <a href="{{ url_for('books_catalog') }}" class="admin-side-link">
+                    <i class="bi bi-person-badge"></i> Authors
+                </a>
+                <a href="{{ url_for('books_catalog') }}" class="admin-side-link">
+                    <i class="bi bi-headphones"></i> Audiobooks
+                </a>
+
+                <!-- USER MANAGEMENT -->
+                <div class="admin-side-group-title mt-3">USER MANAGEMENT</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-people"></i> All Users
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-file-earmark-person"></i> User Requests
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-credit-card"></i> Subscriptions
+                </a>
+
+                <!-- CONTENT & REPORTS -->
+                <div class="admin-side-group-title mt-3">CONTENT & REPORTS</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-star"></i> Reviews & Ratings
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-graph-up-arrow"></i> Analytics
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-file-earmark-bar-chart"></i> Reports
+                </a>
+
+                <!-- SYSTEM -->
+                <div class="admin-side-group-title mt-3">SYSTEM</div>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-images"></i> Banner & Promo
+                </a>
+                <a href="{{ url_for('admin_dashboard') }}" class="admin-side-link">
+                    <i class="bi bi-gear"></i> Settings
+                </a>
+                <a href="{{ url_for('logout') }}" class="admin-side-link text-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+
+            <!-- Bottom Sidebar Quote Card (Exact Match) -->
+            <div class="admin-sidebar-footer-card p-3 rounded-4 mt-3 text-center">
+                <h6 class="fw-bold text-warning mb-1">Pustika</h6>
+                <p class="small text-light font-cursive mb-2" style="font-style: italic; font-size: 0.82rem;">"Knowledge has no limits."</p>
+                <img src="https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=300&q=80" alt="Books Lamp" class="img-fluid rounded-3 shadow-sm" style="max-height: 90px; width: 100%; object-fit: cover;">
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="col-lg-10 col-md-9 p-3 p-lg-4" style="background: #f8fafc;">
+            
+            <!-- Admin Top Bar Header -->
+            <div class="d-flex align-items-center justify-content-between mb-4 bg-white p-3 rounded-4 shadow-sm">
+                <!-- Search Input -->
+                <div class="position-relative" style="max-width: 450px; width: 100%;">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="search" class="form-control bg-light border-0 ps-5 rounded-pill" placeholder="Search books, users, categories...">
+                </div>
+
+                <!-- Admin User Profile Info -->
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-light rounded-circle position-relative p-2" title="Notifications">
+                        <i class="bi bi-bell fs-5 text-secondary"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">3</span>
+                    </button>
+
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="admin-avatar-circle">A</div>
+                        <div class="d-none d-sm-block">
+                            <div class="fw-bold small mb-0 text-dark">Admin</div>
+                            <div class="text-muted small" style="font-size: 0.72rem;">Super Administrator <i class="bi bi-chevron-down ms-1"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Welcome Header & Banner Row -->
+            <div class="row g-3 align-items-center mb-4">
+                <div class="col-lg-8">
+                    <h2 class="fw-bold font-heading text-dark mb-1">Welcome Back, Admin 👋</h2>
+                    <p class="text-secondary mb-0">Manage your library, users, and content. Keep spreading knowledge with Pustika.</p>
+                </div>
+                <div class="col-lg-4 text-end">
+                    <div class="admin-banner-card p-3 rounded-4 text-white position-relative overflow-hidden shadow-sm">
+                        <div class="admin-banner-overlay"></div>
+                        <div class="position-relative z-2 text-start">
+                            <small class="font-cursive text-amber-gold d-block mb-1" style="font-style: italic;">"Books change people, and people change the world." — Pustika</small>
+                            <h6 class="fw-bold mb-0 text-white">More Readers, A Brighter Tomorrow</h6>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Top Stat Metric Cards (Exact Match to Image) -->
+            <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-4 g-3 mb-4">
+                <!-- Total Books -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 shadow-sm p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon-badge bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-book fs-4"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">Total Books</small>
+                                <h3 class="fw-bold text-dark mb-0">1,245</h3>
+                                <small class="text-success fw-bold" style="font-size: 0.75rem;"><i class="bi bi-arrow-up-short"></i> +12% <span class="text-muted fw-normal">vs last month</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Users -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 shadow-sm p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon-badge bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-person fs-4"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">Total Users</small>
+                                <h3 class="fw-bold text-dark mb-0">8,963</h3>
+                                <small class="text-success fw-bold" style="font-size: 0.75rem;"><i class="bi bi-arrow-up-short"></i> +18% <span class="text-muted fw-normal">vs last month</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audiobooks -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 shadow-sm p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon-badge bg-danger bg-opacity-10 text-danger">
+                                <i class="bi bi-headphones fs-4"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">Audiobooks</small>
+                                <h3 class="fw-bold text-dark mb-0">812</h3>
+                                <small class="text-success fw-bold" style="font-size: 0.75rem;"><i class="bi bi-arrow-up-short"></i> +25% <span class="text-muted fw-normal">vs last month</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Reads / Plays -->
+                <div class="col">
+                    <div class="card border-0 rounded-4 shadow-sm p-3 bg-white h-100">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="stat-icon-badge bg-purple bg-opacity-10 text-purple">
+                                <i class="bi bi-eye fs-4"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block fw-semibold" style="font-size: 0.8rem;">Total Reads / Plays</small>
+                                <h3 class="fw-bold text-dark mb-0">45,231</h3>
+                                <small class="text-success fw-bold" style="font-size: 0.75rem;"><i class="bi bi-arrow-up-short"></i> +32% <span class="text-muted fw-normal">vs last month</span></small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts & Quick Actions Row -->
+            <div class="row g-4 mb-4">
+                <!-- Left: Books Added Chart -->
+                <div class="col-lg-5">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Books Added (Last 6 Months)</h6>
+                            <select class="form-select form-select-sm border-0 bg-light rounded-pill" style="width: 140px; font-size: 0.78rem;">
+                                <option>Last 6 Months</option>
+                                <option>Last 12 Months</option>
+                            </select>
+                        </div>
+                        <div style="height: 220px; position: relative;">
+                            <canvas id="booksAddedChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Category Distribution Donut Chart -->
+                <div class="col-lg-4">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white h-100">
+                        <h6 class="fw-bold text-dark mb-3">Category Distribution</h6>
+                        <div class="row align-items-center">
+                            <div class="col-7">
+                                <div style="height: 180px; position: relative;">
+                                    <canvas id="categoryDonutChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-5">
+                                <ul class="list-unstyled small mb-0 font-monospace" style="font-size: 0.75rem;">
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#4a2c11;"></span> Fiction 28%</li>
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#d97706;"></span> Self-Help 18%</li>
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#eab308;"></span> Tech 12%</li>
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#22c55e;"></span> Education 10%</li>
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#3b82f6;"></span> History 8%</li>
+                                    <li class="mb-1"><span class="badge rounded-circle p-1 me-1" style="background:#a855f7;"></span> Motivation 8%</li>
+                                    <li><span class="badge rounded-circle p-1 me-1" style="background:#94a3b8;"></span> Others 26%</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Quick Actions Card -->
+                <div class="col-lg-3">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white h-100">
+                        <h6 class="fw-bold text-dark mb-3">Quick Actions</h6>
+                        <div class="d-grid gap-2">
+                            <a href="{{ url_for('book_create') }}" class="btn admin-action-btn-primary">
+                                <i class="bi bi-plus-lg me-1"></i> Add New Book
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn admin-action-btn-secondary">
+                                <i class="bi bi-headphones me-1 text-warning"></i> Upload Audiobook
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn admin-action-btn-secondary">
+                                <i class="bi bi-grid-3x3-gap me-1 text-primary"></i> Manage Categories
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn admin-action-btn-secondary">
+                                <i class="bi bi-people me-1 text-success"></i> View All Users
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn admin-action-btn-secondary">
+                                <i class="bi bi-images me-1 text-info"></i> Create Banner
+                            </a>
+                            <a href="{{ url_for('admin.dashboard') }}" class="btn admin-action-btn-secondary">
+                                <i class="bi bi-file-earmark-bar-chart me-1 text-danger"></i> Generate Report
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Content Grid -->
+            <div class="row g-4 mb-4">
+                <!-- Recent Books (Horizontal Cards Row) -->
+                <div class="col-lg-8">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Recent Books</h6>
+                            <a href="{{ url_for('books_catalog') }}" class="text-amber-link small fw-bold text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+                        </div>
+
+                        <div class="d-flex gap-3 overflow-auto pb-2 no-scrollbar">
+                            {% for book in recent_books %}
+                            <div class="admin-recent-book-card text-center flex-shrink-0" style="width: 110px;">
+                                <img src="{{ url_for('static', filename='images/covers/' + book.cover_image) }}" class="rounded-3 shadow-sm mb-2" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                                <div class="fw-bold text-dark text-truncate small" style="font-size: 0.8rem;">{{ book.title }}</div>
+                                <div class="text-muted text-truncate" style="font-size: 0.7rem;">{{ book.author }}</div>
+                                <div class="badge bg-secondary bg-opacity-10 text-secondary mt-1" style="font-size: 0.65rem;">E-book + Audio</div>
+                                <div class="mt-1"><span class="badge bg-success bg-opacity-25 text-success" style="font-size: 0.65rem;">Published</span></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Top Performing Books List -->
+                <div class="col-lg-4">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Top Performing Books</h6>
+                            <a href="{{ url_for('books_catalog') }}" class="text-amber-link small fw-bold text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+                        </div>
+
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark fw-bold rounded-2">1</span>
+                                    <img src="{{ url_for('static', filename='images/covers/atomic_habits.svg') }}" class="rounded" style="width: 24px; height: 32px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold text-dark small">Atomic Habits</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">James Clear</div>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-secondary small">12.4K</span>
+                            </div>
+
+                            <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark fw-bold rounded-2">2</span>
+                                    <img src="{{ url_for('static', filename='images/covers/the_alchemist.svg') }}" class="rounded" style="width: 24px; height: 32px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold text-dark small">The Alchemist</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Paulo Coelho</div>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-secondary small">10.8K</span>
+                            </div>
+
+                            <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark fw-bold rounded-2">3</span>
+                                    <img src="{{ url_for('static', filename='images/covers/ikigai.svg') }}" class="rounded" style="width: 24px; height: 32px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold text-dark small">Ikigai</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Héctor García</div>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-secondary small">9.1K</span>
+                            </div>
+
+                            <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark fw-bold rounded-2">4</span>
+                                    <img src="{{ url_for('static', filename='images/covers/deep_work.svg') }}" class="rounded" style="width: 24px; height: 32px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold text-dark small">Deep Work</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Cal Newport</div>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-secondary small">8.6K</span>
+                            </div>
+
+                            <div class="list-group-item px-0 py-2 border-0 d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark fw-bold rounded-2">5</span>
+                                    <img src="{{ url_for('static', filename='images/covers/think_and_grow_rich.svg') }}" class="rounded" style="width: 24px; height: 32px; object-fit: cover;">
+                                    <div>
+                                        <div class="fw-bold text-dark small">Think and Grow Rich</div>
+                                        <div class="text-muted" style="font-size: 0.7rem;">Napoleon Hill</div>
+                                    </div>
+                                </div>
+                                <span class="fw-bold text-secondary small">8.2K</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Latest Users & Storage Usage -->
+            <div class="row g-4">
+                <!-- Latest Users Table -->
+                <div class="col-lg-8">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0">Latest Users</h6>
+                            <a href="{{ url_for('admin.dashboard') }}" class="text-amber-link small fw-bold text-decoration-none">View All <i class="bi bi-arrow-right"></i></a>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle small mb-0">
+                                <thead>
+                                    <tr class="text-muted">
+                                        <th>#</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Joined On</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td><div class="d-flex align-items-center gap-2"><div class="user-table-avatar bg-primary">R</div> Rahul Kumar</div></td>
+                                        <td>rahul.kumar@email.com</td>
+                                        <td>16 Sep 2025</td>
+                                        <td><span class="badge bg-success bg-opacity-25 text-success">● Active</span></td>
+                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td><div class="d-flex align-items-center gap-2"><div class="user-table-avatar bg-purple">S</div> Sneha Verma</div></td>
+                                        <td>sneha.verma@email.com</td>
+                                        <td>15 Sep 2025</td>
+                                        <td><span class="badge bg-success bg-opacity-25 text-success">● Active</span></td>
+                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td><div class="d-flex align-items-center gap-2"><div class="user-table-avatar bg-warning text-dark">A</div> Aman Yadav</div></td>
+                                        <td>aman.yadav@email.com</td>
+                                        <td>15 Sep 2025</td>
+                                        <td><span class="badge bg-success bg-opacity-25 text-success">● Active</span></td>
+                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
+                                    </tr>
+                                    <tr>
+                                        <td>4</td>
+                                        <td><div class="d-flex align-items-center gap-2"><div class="user-table-avatar bg-info">P</div> Priya Singh</div></td>
+                                        <td>priya.singh@email.com</td>
+                                        <td>14 Sep 2025</td>
+                                        <td><span class="badge bg-success bg-opacity-25 text-success">● Active</span></td>
+                                        <td><i class="bi bi-three-dots-vertical text-muted cursor-pointer"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Usage Card -->
+                <div class="col-lg-4">
+                    <div class="card border-0 rounded-4 shadow-sm p-4 bg-white">
+                        <h6 class="fw-bold text-dark mb-3">Storage Usage</h6>
+                        
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>26.8 GB of 100 GB used</span>
+                            <span class="fw-bold text-dark">27%</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 27%;"></div>
+                        </div>
+
+                        <ul class="list-unstyled small mb-4">
+                            <li class="d-flex justify-content-between py-1 border-bottom">
+                                <span><i class="bi bi-circle-fill text-success me-2 fs-6"></i> E-book Files</span>
+                                <span class="fw-semibold">14.2 GB</span>
+                            </li>
+                            <li class="d-flex justify-content-between py-1 border-bottom">
+                                <span><i class="bi bi-circle-fill text-warning me-2 fs-6"></i> Audiobook Files</span>
+                                <span class="fw-semibold">8.6 GB</span>
+                            </li>
+                            <li class="d-flex justify-content-between py-1">
+                                <span><i class="bi bi-circle-fill text-primary me-2 fs-6"></i> Images & Others</span>
+                                <span class="fw-semibold">4.0 GB</span>
+                            </li>
+                        </ul>
+
+                        <button class="btn btn-outline-amber w-100 fw-bold">Upgrade Storage</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Books Added Dual Bar Chart (Apr - Sep)
+    const ctxBar = document.getElementById('booksAddedChart');
+    if (ctxBar) {
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [
+                    {
+                        label: 'E-books',
+                        data: [95, 105, 130, 150, 160, 175],
+                        backgroundColor: '#4a2c11',
+                        borderRadius: 4
+                    },
+                    {
+                        label: 'Audiobooks',
+                        data: [70, 125, 110, 125, 135, 130],
+                        backgroundColor: '#eab308',
+                        borderRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { boxWidth: 12 }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    }
+
+    // 2. Category Distribution Donut Chart
+    const ctxDonut = document.getElementById('categoryDonutChart');
+    if (ctxDonut) {
+        new Chart(ctxDonut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Fiction', 'Self-Help', 'Tech', 'Education', 'History', 'Motivation', 'Others'],
+                datasets: [{
+                    data: [28, 18, 12, 10, 8, 8, 26],
+                    backgroundColor: ['#4a2c11', '#d97706', '#eab308', '#22c55e', '#3b82f6', '#a855f7', '#94a3b8'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

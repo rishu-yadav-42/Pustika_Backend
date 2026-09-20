@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#ea580c"/>
+  
+  <text x="150" y="90" font-family="'Inter', sans-serif" font-weight="900" font-size="32" fill="#0f172a" text-anchor="middle">The Subtle</text>
+  <text x="150" y="135" font-family="'Inter', sans-serif" font-weight="900" font-size="36" fill="#0f172a" text-anchor="middle">Art of</text>
+  <text x="150" y="180" font-family="'Inter', sans-serif" font-weight="900" font-size="28" fill="#ffffff" text-anchor="middle">Not Giving</text>
+  <text x="150" y="225" font-family="'Inter', sans-serif" font-weight="900" font-size="36" fill="#ffffff" text-anchor="middle">a F*ck</text>
+  
+  <text x="150" y="390" font-family="'Outfit', sans-serif" font-weight="900" font-size="20" fill="#0f172a" text-anchor="middle">MARK MANSON</text>
+</svg>

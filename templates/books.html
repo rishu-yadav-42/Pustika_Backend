@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Explore Catalog - Pustika{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h2 class="fw-bold mb-1 text-warning"><i class="bi bi-book-fill"></i> Pustika Book Catalog</h2>
+            <p class="text-secondary small mb-0">Discover and read e-books or listen to audiobooks in English & Hindi</p>
+        </div>
+        <span class="badge bg-warning text-dark rounded-pill px-3 py-2 fs-6 fw-bold">{{ books|length }} Books</span>
+    </div>
+
+    <!-- Multi-Filter Search Bar -->
+    <div class="glass-card p-4 mb-4">
+        <form action="{{ url_for('books_catalog') }}" method="GET" class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold small">Keyword / Title</label>
+                <input type="text" name="q" value="{{ selected_q or '' }}" class="form-control" placeholder="Search title or author...">
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label fw-semibold small">Category</label>
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if selected_category == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="col-md-2">
+                <label class="form-label fw-semibold small">Language</label>
+                <select name="language" class="form-select">
+                    <option value="">All Languages</option>
+                    <option value="English" {% if selected_language == 'English' %}selected{% endif %}>English</option>
+                    <option value="Hindi" {% if selected_language == 'Hindi' %}selected{% endif %}>Hindi (हिंदी)</option>
+                </select>
+            </div>
+
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-warning text-dark fw-bold flex-grow-1 rounded-pill">
+                    <i class="bi bi-funnel me-1"></i> Apply Filters
+                </button>
+                <a href="{{ url_for('books_catalog') }}" class="btn btn-outline-secondary rounded-circle" title="Reset Filters">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Books Grid -->
+    {% if books %}
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+        {% for book in books %}
+        <div class="col">
+            <div class="glass-card h-100 d-flex flex-column style-card-clickable" style="cursor: pointer;" onclick="openPustikaBookModal({{ book.id }}, 'text')">
+                <div class="book-card-img-container">
+                    <img src="{{ url_for('static', filename='images/covers/' + book.cover_image) }}" class="book-card-img" alt="{{ book.title }}" onerror="this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'">
+                    <span class="book-badge-lang">{{ book.language }}</span>
+                    <span class="book-badge-cat">{{ book.category.name if book.category else 'General' }}</span>
+                </div>
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                    <h6 class="fw-bold text-truncate mb-1" title="{{ book.title }}">{{ book.title }}</h6>
+                    <p class="text-muted small mb-2"><i class="bi bi-person me-1"></i> {{ book.author }}</p>
+                    <p class="text-secondary small line-clamp-2 mb-3">{{ book.description[:90] if book.description else 'No description available' }}...</p>
+                    
+                    <div class="mt-auto pt-2 d-flex gap-2" onclick="event.stopPropagation();">
+                        <button onclick="openPustikaBookModal({{ book.id }}, 'both')" class="btn btn-sm btn-warning text-dark fw-bold flex-grow-1 rounded-pill">
+                            <i class="bi bi-book-half me-1"></i> Read / Listen
+                        </button>
+                        <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-sm btn-outline-secondary rounded-circle">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 glass-card my-5">
+        <i class="bi bi-journal-x text-muted display-1"></i>
+        <h4 class="fw-bold mt-3">No books matching your query</h4>
+        <p class="text-secondary">Try adjusting your filters or search keywords.</p>
+        <a href="{{ url_for('books_catalog') }}" class="btn btn-warning text-dark fw-bold rounded-pill mt-2">Reset Filters</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

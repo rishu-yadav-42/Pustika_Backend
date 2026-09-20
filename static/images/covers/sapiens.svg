@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#ffffff"/>
+  <rect x="12" y="12" width="276" height="426" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+  
+  <text x="150" y="60" font-family="'Inter', sans-serif" font-size="9" font-weight="700" fill="#94a3b8" text-anchor="middle" letter-spacing="2">YUVAL NOAH HARARI</text>
+  
+  <text x="150" y="180" font-family="'Georgia', serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle" letter-spacing="2">Sapiens</text>
+  
+  <!-- Feather Silhouette -->
+  <path d="M 150 210 C 130 250 120 300 150 320 C 160 280 170 240 150 210 Z" fill="#b91c1c"/>
+  <line x1="150" y1="210" x2="150" y2="330" stroke="#7f1d1d" stroke-width="1.5"/>
+
+  <text x="150" y="365" font-family="'Georgia', serif" font-style="italic" font-size="14" fill="#334155" text-anchor="middle">A Brief History</text>
+  <text x="150" y="385" font-family="'Georgia', serif" font-style="italic" font-size="14" fill="#334155" text-anchor="middle">of Humankind</text>
+</svg>

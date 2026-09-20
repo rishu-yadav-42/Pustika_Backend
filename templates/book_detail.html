@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - Details{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Main Book Header Card -->
+    <div class="glass-card p-4 p-md-5 mb-5">
+        <div class="row gy-4 align-items-center">
+            <!-- Cover Image Column -->
+            <div class="col-md-4 text-center">
+                <div class="position-relative d-inline-block shadow-lg rounded-4 overflow-hidden" style="max-width: 280px; width: 100%;">
+                    <img src="{{ url_for('static', filename='images/covers/' + book.cover_image) }}" class="img-fluid" alt="{{ book.title }}" onerror="this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'">
+                </div>
+            </div>
+
+            <!-- Details Column -->
+            <div class="col-md-8">
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <span class="badge bg-primary px-3 py-2 rounded-pill">{{ book.category.name if book.category else 'General' }}</span>
+                    <span class="badge bg-secondary px-3 py-2 rounded-pill">{{ book.language }}</span>
+                    {% if book.has_audio %}
+                    <span class="badge bg-success px-3 py-2 rounded-pill"><i class="bi bi-headphones me-1"></i> Audiobook Ready</span>
+                    {% endif %}
+                </div>
+
+                <h1 class="fw-bold mb-2">{{ book.title }}</h1>
+                <h5 class="text-secondary mb-4"><i class="bi bi-person me-2"></i> {{ book.author }}</h5>
+
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    {% if book.has_audio %}
+                    <a href="{{ url_for('audio_player', book_id=book.id) }}" class="btn btn-gradient btn-lg">
+                        <i class="bi bi-play-circle-fill me-2"></i> Listen Audiobook
+                    </a>
+                    {% endif %}
+
+                    {% if book.chapters %}
+                    <a href="{{ url_for('reader', book_id=book.id) }}" class="btn btn-outline-custom btn-lg">
+                        <i class="bi bi-book-half me-2"></i> Read E-Book Text
+                    </a>
+                    {% endif %}
+
+                    <button class="btn btn-outline-secondary btn-lg" onclick="toggleFavorite({{ book.id }}, this)">
+                        <i class="bi bi-heart{% if is_favorited %}-fill text-danger{% endif %} me-2"></i> Favorite
+                    </button>
+                </div>
+
+                <h6 class="fw-bold mb-2">Description</h6>
+                <p class="text-secondary leading-relaxed mb-0">
+                    {{ book.description or 'No description available for this book.' }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chapter List Section -->
+    <div class="row gy-4">
+        <div class="col-lg-8">
+            <div class="glass-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="fw-bold mb-0"><i class="bi bi-list-nested text-primary"></i> Table of Contents</h4>
+                    <span class="text-muted small">{{ book.chapters|length }} Chapters</span>
+                </div>
+
+                {% if book.chapters %}
+                <div class="list-group list-group-flush rounded-3 border-0">
+                    {% for chap in book.chapters %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center p-3 border-bottom" style="background: transparent;">
+                        <div>
+                            <h6 class="mb-1 fw-semibold">{{ chap.chapter_number }}. {{ chap.title }}</h6>
+                            <small class="text-muted">
+                                {% if chap.audio_file %}
+                                <i class="bi bi-mic text-success me-1"></i> Audio available ({{ chap.audio_file.duration_seconds|round|int }}s) • Engine: {{ chap.audio_file.voice_engine }}
+                                {% else %}
+                                <i class="bi bi-file-text me-1"></i> Text only
+                                {% endif %}
+                            </small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            {% if chap.audio_file %}
+                            <a href="{{ url_for('audio_player', book_id=book.id, chapter=chap.id) }}" class="btn btn-sm btn-success rounded-circle" title="Play Chapter Audio">
+                                <i class="bi bi-play-fill"></i>
+                            </a>
+                            {% endif %}
+                            <a href="{{ url_for('reader', book_id=book.id, chapter=chap.id) }}" class="btn btn-sm btn-outline-primary rounded-circle" title="Read Chapter">
+                                <i class="bi bi-book"></i>
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center py-4">No chapters added to this book yet.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Related Books Sidebar -->
+        <div class="col-lg-4">
+            <div class="glass-card p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-grid text-primary"></i> Similar Books</h5>
+                {% if related_books %}
+                {% for rbook in related_books %}
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <img src="{{ url_for('static', filename='images/covers/' + rbook.cover_image) }}" class="rounded shadow-sm" style="width: 50px; height: 75px; object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'">
+                    <div>
+                        <h6 class="mb-1 fw-bold"><a href="{{ url_for('book_detail', book_id=rbook.id) }}" class="text-decoration-none">{{ rbook.title }}</a></h6>
+                        <small class="text-muted d-block">{{ rbook.author }}</small>
+                    </div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <p class="text-muted small">No related books found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

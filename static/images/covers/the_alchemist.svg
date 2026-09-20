@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <defs>
+    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="40%" stop-color="#d97706"/>
+      <stop offset="80%" stop-color="#f59e0b"/>
+      <stop offset="100%" stop-color="#fef08a"/>
+    </linearGradient>
+  </defs>
+  <rect width="300" height="450" fill="url(#skyGrad)"/>
+  
+  <!-- Sun -->
+  <circle cx="150" cy="220" r="50" fill="#fffbeb" opacity="0.9"/>
+  <circle cx="150" cy="220" r="65" fill="#fef08a" opacity="0.4"/>
+  
+  <!-- Pyramids -->
+  <polygon points="40,320 120,200 200,320" fill="#78350f"/>
+  <polygon points="120,320 120,200 200,320" fill="#451a03" opacity="0.4"/>
+  <polygon points="140,320 210,220 280,320" fill="#92400e"/>
+  
+  <!-- Desert Ground -->
+  <path d="M 0 310 Q 150 340 300 310 L 300 450 L 0 450 Z" fill="#451a03"/>
+  
+  <!-- Title -->
+  <text x="150" y="80" font-family="'Georgia', serif" font-weight="bold" font-size="28" fill="#fffbeb" text-anchor="middle" letter-spacing="2">The</text>
+  <text x="150" y="125" font-family="'Georgia', serif" font-weight="900" font-size="34" fill="#ffffff" text-anchor="middle" letter-spacing="3">Alchemist</text>
+  
+  <!-- Author -->
+  <text x="150" y="405" font-family="'Georgia', serif" font-style="italic" font-size="20" fill="#fef3c7" text-anchor="middle">Paulo Coelho</text>
+</svg>

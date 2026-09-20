@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Chapters: {{ book.title }} - Admin{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-text text-primary"></i> Manage Chapters</h2>
+            <p class="text-secondary small mb-0">Book: <strong>{{ book.title }}</strong> ({{ book.chapters|length }} chapters)</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addChapterModal">
+                <i class="bi bi-plus-circle me-1"></i> Add Single Chapter
+            </button>
+            <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addMultiChapterModal">
+                <i class="bi bi-layers-plus me-1"></i> Step-by-Step Multi Chapters
+            </button>
+            <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#importPdfModal">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Import PDF File
+            </button>
+            <a href="{{ url_for('tts_generate', book_id=book.id) }}" class="btn btn-success">
+                <i class="bi bi-mic me-1"></i> Audio Generation
+            </a>
+        </div>
+    </div>
+
+    <!-- Chapter List Table -->
+    <div class="glass-card p-4">
+        {% if book.chapters %}
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr>
+                        <th style="width: 80px;">#</th>
+                        <th>Chapter Title</th>
+                        <th>Character Count</th>
+                        <th>Audio Status</th>
+                        <th style="width: 150px;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for chap in book.chapters %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ chap.chapter_number }}</td>
+                        <td>
+                            <div class="fw-bold">{{ chap.title }}</div>
+                            <small class="text-muted">{{ chap.text_content[:80] }}...</small>
+                        </td>
+                        <td>{{ chap.text_content|length }} chars</td>
+                        <td>
+                            {% if chap.audio_file %}
+                            <span class="badge bg-success"><i class="bi bi-music-note"></i> Ready ({{ chap.audio_file.voice_engine }})</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No Audio</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editModal{{ chap.id }}" title="Edit Chapter">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <form action="{{ url_for('chapter_editor', book_id=book.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Delete this chapter?');">
+                                    <input type="hidden" name="action" value="delete_chapter">
+                                    <input type="hidden" name="chapter_id" value="{{ chap.id }}">
+                                    <button type="submit" class="btn btn-outline-danger" title="Delete Chapter">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Edit Modal -->
+                    <div class="modal fade" id="editModal{{ chap.id }}" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content glass-card">
+                                <div class="modal-header">
+                                    <h5 class="modal-title fw-bold">Edit Chapter {{ chap.chapter_number }}</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="{{ url_for('chapter_editor', book_id=book.id) }}" method="POST">
+                                    <div class="modal-body">
+                                        <input type="hidden" name="action" value="edit_chapter">
+                                        <input type="hidden" name="chapter_id" value="{{ chap.id }}">
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Chapter Title</label>
+                                            <input type="text" name="title" value="{{ chap.title }}" class="form-control" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold">Chapter Text Content</label>
+                                            <textarea name="text_content" class="form-control font-monospace" rows="10" required>{{ chap.text_content }}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="bi bi-file-earmark-x text-muted display-1"></i>
+            <h4 class="fw-bold mt-3">No chapters added yet</h4>
+            <p class="text-secondary">Add chapters step-by-step or upload a PDF file to automatically extract all chapters.</p>
+            <div class="d-flex justify-content-center gap-3 mt-3">
+                <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#addMultiChapterModal">
+                    <i class="bi bi-layers-plus me-1"></i> Add Chapters Step-by-Step
+                </button>
+                <button class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#importPdfModal">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Import PDF File
+                </button>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Single Chapter Add Modal -->
+<div class="modal fade" id="addChapterModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Add Single Chapter</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('chapter_editor', book_id=book.id) }}" method="POST">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="add_chapter">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Chapter Title</label>
+                        <input type="text" name="title" class="form-control" placeholder="e.g. Chapter {{ book.chapters|length + 1 }}: The Journey Begins" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Text Content</label>
+                        <textarea name="text_content" class="form-control font-monospace" rows="10" placeholder="Enter full chapter text..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-gradient">Add Chapter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Dynamic Step-by-Step Multi Chapter Add Modal -->
+<div class="modal fade" id="addMultiChapterModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content glass-card">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold"><i class="bi bi-layers-plus text-primary me-2"></i> Add Multiple Chapters Step-by-Step</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('chapter_editor', book_id=book.id) }}" method="POST">
+                <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+                    <input type="hidden" name="action" value="add_multiple_chapters">
+                    <p class="text-secondary small">Add chapters step-by-step (Chapter 1, Chapter 2, Chapter 3...). Click "+ Add Another Chapter" to insert as many as needed.</p>
+
+                    <div id="stepChaptersContainer">
+                        <!-- Initial Chapter 1 Card -->
+                        <div class="card mb-3 border-secondary bg-dark-subtle step-chapter-card">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <span class="fw-bold text-primary step-chap-label">Chapter {{ book.chapters|length + 1 }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-step-btn d-none" onclick="removeStepChapter(this)"><i class="bi bi-trash"></i> Remove</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Title</label>
+                                    <input type="text" name="titles[]" class="form-control" placeholder="e.g. Chapter {{ book.chapters|length + 1 }}: Introduction" required>
+                                </div>
+                                <div>
+                                    <label class="form-label small fw-bold">Text Content</label>
+                                    <textarea name="contents[]" class="form-control font-monospace" rows="4" placeholder="Enter text content for this chapter..." required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Initial Chapter 2 Card -->
+                        <div class="card mb-3 border-secondary bg-dark-subtle step-chapter-card">
+                            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                                <span class="fw-bold text-primary step-chap-label">Chapter {{ book.chapters|length + 2 }}</span>
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-step-btn" onclick="removeStepChapter(this)"><i class="bi bi-trash"></i> Remove</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">Title</label>
+                                    <input type="text" name="titles[]" class="form-control" placeholder="e.g. Chapter {{ book.chapters|length + 2 }}: Next Steps">
+                                </div>
+                                <div>
+                                    <label class="form-label small fw-bold">Text Content</label>
+                                    <textarea name="contents[]" class="form-control font-monospace" rows="4" placeholder="Enter text content for this chapter..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-outline-info w-100 py-2 border-dashed mt-2" onclick="addStepChapterRow()">
+                        <i class="bi bi-plus-circle me-1"></i> + Add Another Chapter (Step-by-Step)
+                    </button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-gradient btn-lg px-4"><i class="bi bi-save me-1"></i> Save All Chapters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- PDF Import Modal -->
+<div class="modal fade" id="importPdfModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content glass-card">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-pdf text-danger me-2"></i> Import Chapters from PDF File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('chapter_editor', book_id=book.id) }}" method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="upload_pdf_chapters">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select PDF File (.pdf)</label>
+                        <input type="file" name="pdf_file" class="form-control" accept=".pdf" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Import Option</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="mode" id="modeAppend" value="append" checked>
+                            <label class="form-check-label" for="modeAppend">
+                                Append to existing chapters (Keep current chapters)
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="mode" id="modeReplace" value="replace">
+                            <label class="form-check-label" for="modeReplace">
+                                Replace all existing chapters with PDF chapters
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning fw-bold"><i class="bi bi-upload me-1"></i> Parse & Save PDF Chapters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let startChapIndex = {{ book.chapters|length }};
+
+function addStepChapterRow() {
+    const container = document.getElementById('stepChaptersContainer');
+    const currentCardsCount = container.querySelectorAll('.step-chapter-card').length;
+    const nextChapNum = startChapIndex + currentCardsCount + 1;
+
+    const cardDiv = document.createElement('div');
+    cardDiv.className = 'card mb-3 border-secondary bg-dark-subtle step-chapter-card';
+    cardDiv.innerHTML = `
+        <div class="card-header d-flex justify-content-between align-items-center py-2">
+            <span class="fw-bold text-primary step-chap-label">Chapter ${nextChapNum}</span>
+            <button type="button" class="btn btn-sm btn-outline-danger remove-step-btn" onclick="removeStepChapter(this)"><i class="bi bi-trash"></i> Remove</button>
+        </div>
+        <div class="card-body">
+            <div class="mb-2">
+                <label class="form-label small fw-bold">Title</label>
+                <input type="text" name="titles[]" class="form-control" placeholder="e.g. Chapter ${nextChapNum}: Title...">
+            </div>
+            <div>
+                <label class="form-label small fw-bold">Text Content</label>
+                <textarea name="contents[]" class="form-control font-monospace" rows="4" placeholder="Enter text content for this chapter..."></textarea>
+            </div>
+        </div>
+    `;
+    container.appendChild(cardDiv);
+    updateChapterLabels();
+}
+
+function removeStepChapter(btn) {
+    const card = btn.closest('.step-chapter-card');
+    card.remove();
+    updateChapterLabels();
+}
+
+function updateChapterLabels() {
+    const cards = document.querySelectorAll('.step-chapter-card');
+    cards.forEach((card, idx) => {
+        const num = startChapIndex + idx + 1;
+        card.querySelector('.step-chap-label').innerText = `Chapter ${num}`;
+        const removeBtn = card.querySelector('.remove-step-btn');
+        if (cards.length === 1) {
+            removeBtn.classList.add('d-none');
+        } else {
+            removeBtn.classList.remove('d-none');
+        }
+    });
+}
+</script>
+{% endblock %}
+

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In - AudioEbook Hub{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="glass-card p-4 p-md-5 shadow-lg">
+                <div class="text-center mb-4">
+                    <div class="badge bg-primary-subtle text-primary p-3 rounded-circle mb-3 fs-3">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                    </div>
+                    <h3 class="fw-bold">Welcome Back</h3>
+                    <p class="text-secondary small">Sign in to access your audiobooks & favorites</p>
+                </div>
+
+                <form action="{{ url_for('login') }}" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email or Username</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-tertiary border-0"><i class="bi bi-person"></i></span>
+                            <input type="text" name="login_input" class="form-control" placeholder="admin@ebook.com" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-tertiary border-0"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="password" class="form-control" placeholder="••••••••" required>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="rememberCheck">
+                            <label class="form-check-label small" for="rememberCheck">Remember me</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-gradient w-100 btn-lg">Sign In</button>
+                </form>
+
+                <div class="text-center mt-4 text-secondary small">
+                    Don't have an account? <a href="{{ url_for('register') }}" class="fw-bold">Register Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

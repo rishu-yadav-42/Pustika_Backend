@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#eab308"/>
+  
+  <text x="150" y="140" font-family="'Inter', sans-serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle" letter-spacing="-1">Deep</text>
+  <text x="150" y="195" font-family="'Inter', sans-serif" font-weight="900" font-size="44" fill="#0f172a" text-anchor="middle" letter-spacing="-1">Work</text>
+  
+  <rect x="40" y="230" width="220" height="4" fill="#0f172a"/>
+  
+  <text x="150" y="270" font-family="'Inter', sans-serif" font-size="13" font-weight="700" fill="#1e293b" text-anchor="middle">RULES FOR FOCUSED SUCCESS</text>
+  <text x="150" y="290" font-family="'Inter', sans-serif" font-size="12" font-weight="600" fill="#334155" text-anchor="middle">IN A DISTRACTED WORLD</text>
+  
+  <text x="150" y="390" font-family="'Outfit', sans-serif" font-weight="800" font-size="18" fill="#0f172a" text-anchor="middle" letter-spacing="2">CAL NEWPORT</text>
+</svg>

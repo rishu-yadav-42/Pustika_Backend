@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 450" width="300" height="450">
+  <rect width="300" height="450" fill="#f59e0b"/>
+  
+  <text x="150" y="130" font-family="'Inter', sans-serif" font-weight="900" font-size="42" fill="#0f172a" text-anchor="middle">Do</text>
+  <text x="150" y="185" font-family="'Inter', sans-serif" font-weight="900" font-size="46" fill="#0f172a" text-anchor="middle">Epic</text>
+  <text x="150" y="240" font-family="'Inter', sans-serif" font-weight="900" font-size="46" fill="#0f172a" text-anchor="middle">Shit</text>
+  
+  <text x="150" y="380" font-family="'Outfit', sans-serif" font-weight="800" font-size="18" fill="#1e293b" text-anchor="middle">Ankur Warikoo</text>
+</svg>
