@@ -85,6 +85,67 @@ function initPustikaModalEvents() {
             }
         });
     }
+
+    // Keyboard navigation (Left/Right arrow keys to turn pages)
+    document.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+        const modalEl = document.getElementById('pustikaReaderModal');
+        const isModalOpen = modalEl && (modalEl.classList.contains('show') || modalEl.style.display === 'block');
+        const frEl = document.getElementById('floatingReaderOverlay');
+        const isFrOpen = frEl && frEl.style.display === 'block';
+
+        if (isModalOpen || isFrOpen) {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                changeReaderPage(-1);
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                changeReaderPage(1);
+            }
+        }
+    });
+}
+
+/* --------------------------------------------------------------------------
+   PDF / Page Preparation Engine (1:1 Exact PDF Page Mapping)
+   -------------------------------------------------------------------------- */
+function prepareBookPages(data) {
+    const chaps = data.chapters || [];
+    if (!chaps.length) {
+        return [{ pageNumber: 1, title: 'Page 1', content: [data.description || 'No content available.'] }];
+    }
+
+    const isPdfOrMultiPage = data.is_pdf || chaps.length > 1 || (chaps[0].title && chaps[0].title.toLowerCase().startsWith('page '));
+
+    if (isPdfOrMultiPage) {
+        // EXACT 1:1 Sequential Page Mapping: each entry in chapters IS an exact page!
+        return chaps.map((ch, idx) => {
+            const lines = (ch.text_content || '').split(/\n\s*\n/).map(l => l.trim()).filter(l => l.length > 0);
+            return {
+                pageNumber: ch.chapter_number || (idx + 1),
+                title: ch.title || `Page ${idx + 1}`,
+                content: lines.length > 0 ? lines : [ch.text_content || `[Page ${idx + 1}]`],
+                audio: ch.audio || null
+            };
+        });
+    } else {
+        // Single chapter text splitting
+        const text = chaps[0].text_content || data.description || '';
+        const paragraphs = text.split(/\n\s*\n/).map(p => p.trim()).filter(p => p !== '');
+        const chunkSize = 3;
+        const pages = [];
+        let pNum = 1;
+        for (let i = 0; i < paragraphs.length; i += chunkSize) {
+            pages.push({
+                pageNumber: pNum,
+                title: `Page ${pNum}`,
+                content: paragraphs.slice(i, i + chunkSize),
+                audio: chaps[0].audio || null
+            });
+            pNum++;
+        }
+        return pages.length > 0 ? pages : [{ pageNumber: 1, title: 'Page 1', content: [text], audio: chaps[0].audio || null }];
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -101,25 +162,19 @@ async function selectBookForReader(bookId) {
         
         pustikaModalState.book = data;
         pustikaModalState.chapters = data.chapters || [];
+        pustikaModalState.bookPages = prepareBookPages(data);
+        pustikaModalState.totalPages = pustikaModalState.bookPages.length;
+        pustikaModalState.currentPageIndex = Math.min(Math.max(1, data.last_page || 1), pustikaModalState.totalPages);
 
         const titleEl = document.getElementById('fr-title');
         const authorEl = document.getElementById('fr-author');
         const coverEl = document.getElementById('fr-cover');
-        const headingEl = document.getElementById('fr-chapter-heading');
-        const contentEl = document.getElementById('fr-text-content');
         
         if (titleEl) titleEl.textContent = data.title;
         if (authorEl) authorEl.textContent = data.author;
         if (coverEl) coverEl.src = data.cover_url;
         
-        if (data.chapters && data.chapters.length > 0) {
-            const chap = data.chapters[0];
-            if (headingEl) headingEl.textContent = chap.title.replace(/^.*Chapter \d+:?\s*/i, '') || chap.title;
-            if (contentEl) {
-                const paragraphs = chap.text_content.split(/\n\s*\n/).filter(p => p.trim() !== '');
-                contentEl.innerHTML = paragraphs.slice(0, 3).map(p => `<p class="mb-3">${escapeHtml(p)}</p>`).join('');
-            }
-        }
+        renderPageContent('next');
     } catch (e) {
         console.error("Error updating floating reader:", e);
     }
@@ -147,14 +202,18 @@ async function openPustikaBookModal(bookId, defaultMode = 'text') {
         const data = await response.json();
         pustikaModalState.book = data;
         pustikaModalState.chapters = data.chapters || [];
-        pustikaModalState.currentChapterIndex = 0;
-        pustikaModalState.currentPageIndex = data.last_page || 1;
+        pustikaModalState.bookPages = prepareBookPages(data);
+        pustikaModalState.totalPages = pustikaModalState.bookPages.length;
+        pustikaModalState.currentPageIndex = Math.min(Math.max(1, data.last_page || 1), pustikaModalState.totalPages);
         pustikaModalState.mode = defaultMode;
 
         // Header info
-        document.getElementById('pm-book-title').textContent = data.title;
-        document.getElementById('pm-book-author').textContent = `By ${data.author}`;
-        document.getElementById('pm-cover-img').src = data.cover_url;
+        const titleEl = document.getElementById('pm-book-title');
+        const authorEl = document.getElementById('pm-book-author');
+        const coverEl = document.getElementById('pm-cover-img');
+        if (titleEl) titleEl.textContent = data.title;
+        if (authorEl) authorEl.textContent = `By ${data.author}`;
+        if (coverEl) coverEl.src = data.cover_url;
 
         // Favorite icon
         const favBtnIcon = document.querySelector('#pm-fav-btn i');
@@ -162,18 +221,21 @@ async function openPustikaBookModal(bookId, defaultMode = 'text') {
             favBtnIcon.className = data.is_favorited ? 'bi bi-heart-fill text-danger fs-5' : 'bi bi-heart fs-5';
         }
 
-        // Chapter Menu
+        // Chapter / Page Dropdown
         populateChapterDropdown();
 
-        // Render current chapter
-        loadChapterContent(0);
+        // Render current page content
+        renderPageContent('next');
 
         // Mode set
         setReaderMode(defaultMode);
 
         // Show Bootstrap Modal
-        const bsModal = new bootstrap.Modal(document.getElementById('pustikaReaderModal'));
-        bsModal.show();
+        const modalDom = document.getElementById('pustikaReaderModal');
+        if (modalDom) {
+            const bsModal = bootstrap.Modal.getInstance(modalDom) || new bootstrap.Modal(modalDom);
+            bsModal.show();
+        }
 
     } catch (err) {
         console.error('Error launching Pustika modal:', err);
@@ -182,88 +244,163 @@ async function openPustikaBookModal(bookId, defaultMode = 'text') {
 }
 
 /* --------------------------------------------------------------------------
-   Chapter & Content Rendering
+   Page / Chapter Dropdown Navigation
    -------------------------------------------------------------------------- */
 function populateChapterDropdown() {
     const menuEl = document.getElementById('pm-chapter-menu');
     if (!menuEl) return;
 
-    menuEl.innerHTML = pustikaModalState.chapters.map((ch, idx) => `
+    const pages = pustikaModalState.bookPages || [];
+    const curIdx = pustikaModalState.currentPageIndex - 1;
+
+    let jumpHtml = '';
+    if (pages.length > 3) {
+        jumpHtml = `
+            <li class="px-3 py-2 border-bottom sticky-top bg-white">
+                <div class="input-group input-group-sm">
+                    <input type="number" id="pm-jump-page-input" class="form-control form-control-sm" placeholder="Go to Page (1-${pages.length})" min="1" max="${pages.length}" onkeydown="if(event.key==='Enter'){jumpToReaderPage();}">
+                    <button class="btn btn-warning btn-sm fw-bold px-2" type="button" onclick="jumpToReaderPage()">Go</button>
+                </div>
+            </li>
+        `;
+    }
+
+    const itemsHtml = pages.map((pg, idx) => `
         <li>
-            <a class="dropdown-item ${idx === pustikaModalState.currentChapterIndex ? 'active fw-bold' : ''}" href="#" onclick="switchChapter(${idx}); return false;">
-                Ch ${ch.chapter_number}: ${ch.title}
+            <a class="dropdown-item ${idx === curIdx ? 'active fw-bold' : ''}" href="#" onclick="jumpToReaderPageNumber(${idx + 1}); return false;">
+                ${pg.title}
             </a>
         </li>
     `).join('');
+
+    menuEl.innerHTML = jumpHtml + itemsHtml;
+}
+
+function jumpToReaderPage() {
+    const input = document.getElementById('pm-jump-page-input');
+    if (!input) return;
+    const val = parseInt(input.value, 10);
+    if (!isNaN(val) && val >= 1 && val <= pustikaModalState.totalPages) {
+        jumpToReaderPageNumber(val);
+    } else {
+        showToast('Invalid Page', `Please enter a page between 1 and ${pustikaModalState.totalPages}`, 'warning');
+    }
+}
+
+function jumpToReaderPageNumber(targetPage) {
+    if (targetPage < 1 || targetPage > pustikaModalState.totalPages) return;
+    const direction = targetPage >= pustikaModalState.currentPageIndex ? 'next' : 'prev';
+    pustikaModalState.currentPageIndex = targetPage;
+    populateChapterDropdown();
+    renderPageContent(direction);
 }
 
 function switchChapter(idx) {
-    if (idx < 0 || idx >= pustikaModalState.chapters.length) return;
-    pustikaModalState.currentChapterIndex = idx;
-    pustikaModalState.currentPageIndex = 1;
-    populateChapterDropdown();
-    loadChapterContent(idx);
+    jumpToReaderPageNumber(idx + 1);
 }
 
-function loadChapterContent(idx) {
-    const chap = pustikaModalState.chapters[idx];
-    if (!chap) return;
+/* --------------------------------------------------------------------------
+   Page Content Rendering & 3D Realistic Page Turn Animation
+   -------------------------------------------------------------------------- */
+function renderPageContent(direction = 'next') {
+    const pages = pustikaModalState.bookPages || [];
+    const curIdx = pustikaModalState.currentPageIndex - 1;
+    const pageObj = pages[curIdx] || { pageNumber: curIdx + 1, title: `Page ${curIdx + 1}`, content: [] };
+    const paragraphs = pageObj.content || [];
+    const totalPages = pustikaModalState.totalPages || 1;
+    const curPage = pustikaModalState.currentPageIndex;
 
-    document.getElementById('pm-chapter-badge').textContent = `Chapter ${chap.chapter_number}`;
-    document.getElementById('pm-chapter-heading').textContent = chap.title;
-    document.getElementById('pm-current-chapter-title').textContent = `Ch ${chap.chapter_number}: ${chap.title}`;
+    // 1. Update PM Modal Badges & Titles
+    const badgeEl = document.getElementById('pm-chapter-badge');
+    const headingEl = document.getElementById('pm-chapter-heading');
+    const curChapTitleEl = document.getElementById('pm-current-chapter-title');
+    
+    if (badgeEl) badgeEl.textContent = `PAGE ${curPage} OF ${totalPages}`;
+    if (headingEl) headingEl.textContent = `${pustikaModalState.book ? pustikaModalState.book.title + ' - ' : ''}${pageObj.title}`;
+    if (curChapTitleEl) curChapTitleEl.textContent = `${pageObj.title}`;
 
-    // Load Audio source
+    // 2. Audio source update if page has audio
     const audioEl = document.getElementById('pm-native-audio-player');
     const audioTitle = document.getElementById('pm-audio-title');
-    if (chap.audio && chap.audio.audio_url) {
-        if (audioEl) audioEl.src = chap.audio.audio_url;
-        if (audioTitle) audioTitle.textContent = `${chap.title}`;
+    if (pageObj.audio && pageObj.audio.audio_url) {
+        if (audioEl) audioEl.src = pageObj.audio.audio_url;
+        if (audioTitle) audioTitle.textContent = `${pageObj.title}`;
     } else {
         if (audioEl) audioEl.src = '';
-        if (audioTitle) audioTitle.textContent = `${chap.title} (No Audio File)`;
+        if (audioTitle) audioTitle.textContent = `${pageObj.title} (No Audio File)`;
     }
 
-    // Process & pagination of text
-    const paragraphs = chap.text_content.split(/\n\s*\n/).filter(p => p.trim() !== '');
-    const chunkSize = 3;
-    const pages = [];
-    for (let i = 0; i < paragraphs.length; i += chunkSize) {
-        pages.push(paragraphs.slice(i, i + chunkSize));
-    }
-
-    pustikaModalState.pages = pages.length > 0 ? pages : [[chap.text_content]];
-    pustikaModalState.totalPages = pustikaModalState.pages.length;
-
-    renderPageContent();
-}
-
-function renderPageContent() {
-    const pages = pustikaModalState.pages || [];
-    const curIdx = pustikaModalState.currentPageIndex - 1;
-    const curParagraphs = pages[curIdx] || [];
-
+    // 3. Update PM Modal Body text
     const bodyEl = document.getElementById('pm-text-body');
+    const pmSurface = document.getElementById('pm-paper-surface');
     if (bodyEl) {
-        bodyEl.innerHTML = curParagraphs.map((p, pIdx) => `
+        bodyEl.innerHTML = paragraphs.map((p, pIdx) => `
             <p class="pm-paragraph mb-4" data-para-index="${pIdx}">${escapeHtml(p)}</p>
         `).join('');
     }
 
+    // 4. Update Floating Reader Body text & Badges
+    const frContentEl = document.getElementById('fr-text-content');
+    const frSurface = document.getElementById('fr-body-paper') || document.getElementById('fr-body-paper-container');
+    const frBadgeEl = document.getElementById('fr-chapter-badge');
+    const frHeadingEl = document.getElementById('fr-chapter-heading');
+    if (frBadgeEl) frBadgeEl.textContent = `PAGE ${curPage} OF ${totalPages}`;
+    if (frHeadingEl) frHeadingEl.textContent = pageObj.title;
+    if (frContentEl) {
+        frContentEl.innerHTML = paragraphs.map(p => `
+            <p class="mb-3">${escapeHtml(p)}</p>
+        `).join('');
+    }
+
+    // 5. Apply Realistic 3D Page Turn Animation
+    [pmSurface, frSurface].forEach(surf => {
+        if (surf) {
+            surf.classList.remove('anim-page-flip-next', 'anim-page-flip-prev');
+            // Force browser reflow to trigger animation cleanly every time
+            void surf.offsetWidth;
+            const animClass = (direction === 'prev') ? 'anim-page-flip-prev' : 'anim-page-flip-next';
+            surf.classList.add(animClass);
+            setTimeout(() => {
+                surf.classList.remove('anim-page-flip-next', 'anim-page-flip-prev');
+            }, 460);
+        }
+    });
+
+    // 6. Update all page counters
     const cp = document.getElementById('pm-current-page');
     const tp = document.getElementById('pm-total-pages');
     const fp = document.getElementById('pm-footer-page');
-    if (cp) cp.textContent = pustikaModalState.currentPageIndex;
-    if (tp) tp.textContent = pustikaModalState.totalPages;
-    if (fp) fp.textContent = pustikaModalState.currentPageIndex;
+    const frPage = document.getElementById('fr-page-num');
+    const frTotal = document.getElementById('fr-total-pages');
+    const frFooter = document.getElementById('fr-footer-page');
+
+    if (cp) cp.textContent = curPage;
+    if (tp) tp.textContent = totalPages;
+    if (fp) fp.textContent = curPage;
+
+    if (frPage) frPage.textContent = curPage;
+    if (frTotal) frTotal.textContent = totalPages;
+    if (frFooter) frFooter.textContent = curPage;
+
+    // 7. Save reading progress to server
+    if (pustikaModalState.book) {
+        saveReadingProgress(pustikaModalState.book.id, curPage);
+    }
 }
 
 function changeReaderPage(delta) {
-    const newPage = pustikaModalState.currentPageIndex + delta;
-    if (newPage >= 1 && newPage <= pustikaModalState.totalPages) {
-        pustikaModalState.currentPageIndex = newPage;
-        renderPageContent();
+    const target = pustikaModalState.currentPageIndex + delta;
+    if (target >= 1 && target <= pustikaModalState.totalPages) {
+        jumpToReaderPageNumber(target);
     }
+}
+
+function saveReadingProgress(bookId, pageNumber) {
+    fetch('/api/user/history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ book_id: bookId, page_number: pageNumber })
+    }).catch(() => {});
 }
 
 /* --------------------------------------------------------------------------
