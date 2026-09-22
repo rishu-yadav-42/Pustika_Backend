@@ -30,9 +30,12 @@ def get_db_uri():
         return f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}"
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
-    elif db_url.startswith("postgresql://"):
+    elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
         db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
+    if "sslmode=" in db_url:
+        db_url = re.sub(r'sslmode=[^&]+', 'ssl_context=true', db_url)
     return db_url
+
 
 
 class Config:
