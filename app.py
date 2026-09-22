@@ -1,6 +1,8 @@
 import os
 import re
 import uuid
+import urllib.parse
+import ssl
 import requests
 import pypdf
 from typing import List, Dict, Any
@@ -22,26 +24,33 @@ from werkzeug.utils import secure_filename
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
-def get_db_uri():
+def get_db_uri_and_args():
     db_url = os.getenv('DATABASE_URL', '').strip()
     if not db_url:
         if os.getenv('VERCEL'):
-            return f"sqlite:///{os.path.join('/tmp', 'database.db')}"
-        return f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}"
-    if db_url.startswith("postgres://"):
-        db_url = db_url.replace("postgres://", "postgresql+pg8000://", 1)
-    elif db_url.startswith("postgresql://") and not db_url.startswith("postgresql+"):
-        db_url = db_url.replace("postgresql://", "postgresql+pg8000://", 1)
-    if "sslmode=" in db_url:
-        db_url = re.sub(r'sslmode=[^&]+', 'ssl_context=true', db_url)
-    return db_url
+            return f"sqlite:///{os.path.join('/tmp', 'database.db')}", {}
+        return f"sqlite:///{os.path.join(BASE_DIR, 'database.db')}", {}
+    
+    if db_url.startswith("postgres://") or db_url.startswith("postgresql://") or db_url.startswith("postgresql+"):
+        parsed = urllib.parse.urlparse(db_url)
+        clean_url = f"postgresql+pg8000://{parsed.netloc}{parsed.path}"
+        
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
+        
+        return clean_url, {"connect_args": {"ssl_context": ssl_ctx}}
+        
+    return db_url, {}
 
-
+db_uri, db_engine_options = get_db_uri_and_args()
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default_fallback_secret_key_12345')
-    SQLALCHEMY_DATABASE_URI = get_db_uri()
+    SQLALCHEMY_DATABASE_URI = db_uri
+    SQLALCHEMY_ENGINE_OPTIONS = db_engine_options
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+
     
     STATIC_FOLDER = os.path.join(BASE_DIR, 'static')
     
